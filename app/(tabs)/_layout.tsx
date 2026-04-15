@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import React from 'react';
 
 import { HapticTab } from '@/components/external/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
+//import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/external/use-color-scheme';
 import AntDesign from '@expo/vector-icons/AntDesign';
 
@@ -13,15 +13,15 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
+        //tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        headerShown: true,
+        //tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <FontAwesome name="home" size={24} color="black" />,
         }}
       />
       <Tabs.Screen
