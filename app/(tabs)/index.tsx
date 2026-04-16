@@ -3,6 +3,14 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { 
+  turnLightOn, 
+  turnLightOff, 
+  setAutoMode, 
+  getLightStatus, 
+  sendVoiceCommand,
+  testConnection 
+} from '@/services/api';
 
 export default function HomePage() {
   const [lightStatus, setLightStatus] = useState('off');
@@ -11,7 +19,25 @@ export default function HomePage() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [mockMotion, setMockMotion] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [backendUrl, setBackendUrl] = useState('http://localhost:5000');
+  const [isConnected, setIsConnected] = useState(false);
+  const [backendUrl, setBackendUrl] = useState('http://192.168.1.100:5000');
+
+  // Add this effect to poll status every 2 seconds
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await getLightStatus();
+        setLightStatus(response.status);
+        setMode(response.mode);
+        setLastUpdated(new Date());
+      } catch (error) {
+        console.error('Polling failed:', error);
+      }
+    };
+
+    const interval = setInterval(fetchStatus, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (mode === 'auto') {
@@ -54,51 +80,74 @@ export default function HomePage() {
     }
   };
 
-  const turnLightOn = async () => {
+  const fetchStatus = async () => {
+    try {
+      const response = await getLightStatus(backendUrl);
+      setLightStatus(response.status);
+      setMode(response.mode);
+      setLastUpdated(new Date());
+      setErrorMessage(null);
+    } catch (error) {
+      console.error('Failed to fetch status:', error);
+      setIsConnected(false);
+    }
+  };
+
+  const handleTurnLightOn = async () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setLightStatus('on');
-      setMode('manual');
+      const response = await turnLightOn(backendUrl);
+      setLightStatus(response.status);
+      setMode(response.mode);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Failed to turn light on', error);
-      setErrorMessage('Failed to turn light on');  // <-- ADD THIS
-      setTimeout(() => setErrorMessage(null), 3000);  // <-- ADD THIS
+      setErrorMessage('Failed to turn light on');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleTurnLightOff = async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const response = await turnLightOff(backendUrl);
+      setLightStatus(response.status);
+      setMode(response.mode);
+      setLastUpdated(new Date());
+    } catch (error) {
+      setErrorMessage('Failed to turn light off');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleSetAutoMode = async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const response = await setAutoMode(backendUrl);
+      setLightStatus(response.status);
+      setMode(response.mode);
+      setLastUpdated(new Date());
+    } catch (error) {
+      setErrorMessage('Failed to set auto mode');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const turnLightOff = async () => {
+  const handleVoiceCommand = async (commandText: string) => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setLightStatus('off');
-      setMode('manual');
+      const response = await sendVoiceCommand(commandText, backendUrl);
+      setLightStatus(response.status);
+      setMode(response.mode);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Failed to turn light off', error);
-      setErrorMessage('Failed to turn light off');  // <-- ADD THIS
-      setTimeout(() => setErrorMessage(null), 3000);  // <-- ADD THIS
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const setAutoMode = async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setMode('auto');
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Failed to set auto mode', error);
-      setErrorMessage('Failed to set auto mode');  // <-- ADD THIS
-      setTimeout(() => setErrorMessage(null), 3000);  // <-- ADD THIS
+      setErrorMessage('Voice command failed');
     } finally {
       setIsLoading(false);
     }
@@ -166,10 +215,10 @@ export default function HomePage() {
         <View style={styles.panel}>
           <Text style={styles.panelTitle}>Controls</Text>
           <View style={styles.buttonGrid}>
-            <TouchableOpacity 
+          <TouchableOpacity 
               style={[styles.button, styles.onButton, isLoading && styles.disabledButton]}
-              onPress={turnLightOn}
-              disabled={isLoading}
+              onPress={handleTurnLightOn}
+              disabled={isLoading || !isConnected}
               activeOpacity={0.7}
             >
               <Ionicons name="flash" size={18} color="white" />
@@ -178,8 +227,8 @@ export default function HomePage() {
 
             <TouchableOpacity 
               style={[styles.button, styles.offButton, isLoading && styles.disabledButton]}
-              onPress={turnLightOff}
-              disabled={isLoading}
+              onPress={handleTurnLightOff}
+              disabled={isLoading || !isConnected}
               activeOpacity={0.7}
             >
               <Ionicons name="flash-off" size={18} color="white" />
@@ -188,8 +237,8 @@ export default function HomePage() {
 
             <TouchableOpacity 
               style={[styles.button, styles.autoButton, isLoading && styles.disabledButton]}
-              onPress={setAutoMode}
-              disabled={isLoading}
+              onPress={handleSetAutoMode}
+              disabled={isLoading || !isConnected}
               activeOpacity={0.7}
             >
               <Ionicons name="refresh" size={18} color="white" />
@@ -201,6 +250,7 @@ export default function HomePage() {
         {/* Voice Section */}
         <TouchableOpacity 
           style={styles.voiceCard}
+          onPress={() => handleVoiceCommand('auto mode')} // Change this to open voice input
           activeOpacity={0.7}
         >
           <View style={styles.voiceIconContainer}>
@@ -215,8 +265,8 @@ export default function HomePage() {
 
         {/* Status Bar */}
         <View style={styles.statusBar}>
-          <View style={styles.statusDot} />
-          <Text style={styles.statusBarText}>Connected</Text>
+          <View style={[styles.statusDot, { backgroundColor: isConnected ? '#22c55e' : '#ef4444' }]} />
+          <Text style={styles.statusBarText}>{isConnected ? 'Connected' : 'Disconnected'}</Text>
           <View style={styles.separator} />
           <Text style={styles.timestamp}>{lastUpdated.toLocaleTimeString()}</Text>
         </View>
