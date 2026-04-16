@@ -17,10 +17,36 @@ export default function HomePage() {
   const [mode, setMode] = useState('auto');
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [mockMotion, setMockMotion] = useState(false);
+  //const [mockMotion, setMockMotion] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [backendUrl, setBackendUrl] = useState('http://192.168.1.100:5000');
+
+  // Test connection to backend when app starts
+  useEffect(() => {
+    const checkConnection = async () => {
+      const connected = await testConnection(backendUrl);
+      setIsConnected(connected);
+      if (connected) {
+        // Fetch initial status
+        fetchStatus();
+      } else {
+        setErrorMessage('Cannot connect to backend. Check settings.');
+      }
+    };
+    checkConnection();
+  }, []);
+
+  // Poll status every 2 seconds when connected
+  useEffect(() => {
+    if (!isConnected) return;
+    
+    const interval = setInterval(() => {
+      fetchStatus();
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [isConnected]);
 
   // Add this effect to poll status every 2 seconds
   useEffect(() => {
