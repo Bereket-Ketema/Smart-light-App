@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function HomePage() {
   // State for light status
@@ -9,6 +9,22 @@ export default function HomePage() {
   const [mode, setMode] = useState('auto');
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [mockMotion, setMockMotion] = useState(false);
+
+  useEffect(() => {
+    if (mode === 'auto') {
+      const interval = setInterval(() => {
+        // Randomly simulate motion every 5 seconds for testing
+        const motionDetected = Math.random() > 0.7;
+        if (motionDetected) {
+          setLightStatus('on');
+        } else {
+          setLightStatus('off');
+        }
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [mode]);
 
   // Mock API functions (will connect to real backend later)
   const turnLightOn = async () => {
