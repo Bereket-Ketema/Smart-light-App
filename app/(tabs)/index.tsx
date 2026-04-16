@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
-//import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomePage() {
   const [lightStatus, setLightStatus] = useState('off');
@@ -11,6 +11,7 @@ export default function HomePage() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [mockMotion, setMockMotion] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [backendUrl, setBackendUrl] = useState('http://localhost:5000');
 
   useEffect(() => {
     if (mode === 'auto') {
@@ -27,15 +28,31 @@ export default function HomePage() {
     }
   }, [mode]);
 
-  // useEffect(() => {
-  //   const loadConfig = async () => {
-  //     const savedUrl = await AsyncStorage.getItem('backendUrl');
-  //     if (savedUrl) {
-  //       setBackendUrl(savedUrl);
-  //     }
-  //   };
-  //   loadConfig();
-  // }, []);
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const savedUrl = await AsyncStorage.getItem('backendUrl');
+        if (savedUrl) {
+          setBackendUrl(savedUrl);
+          console.log('Loaded backend URL:', savedUrl);
+        }
+      } catch (error) {
+        console.error('Failed to load backend URL', error);
+      }
+    };
+    loadConfig();
+  }, []);
+
+  // Save backend URL whenever it changes
+  const saveBackendUrl = async (url: string) => {
+    try {
+      await AsyncStorage.setItem('backendUrl', url);
+      setBackendUrl(url);
+      console.log('Saved backend URL:', url);
+    } catch (error) {
+      console.error('Failed to save backend URL', error);
+    }
+  };
 
   const turnLightOn = async () => {
     setIsLoading(true);
