@@ -2,14 +2,15 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
+//import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomePage() {
-  // State for light status
   const [lightStatus, setLightStatus] = useState('off');
   const [mode, setMode] = useState('auto');
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [mockMotion, setMockMotion] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (mode === 'auto') {
@@ -26,9 +27,19 @@ export default function HomePage() {
     }
   }, [mode]);
 
-  // Mock API functions (will connect to real backend later)
+  // useEffect(() => {
+  //   const loadConfig = async () => {
+  //     const savedUrl = await AsyncStorage.getItem('backendUrl');
+  //     if (savedUrl) {
+  //       setBackendUrl(savedUrl);
+  //     }
+  //   };
+  //   loadConfig();
+  // }, []);
+
   const turnLightOn = async () => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
       setLightStatus('on');
@@ -36,6 +47,8 @@ export default function HomePage() {
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Failed to turn light on', error);
+      setErrorMessage('Failed to turn light on');  // <-- ADD THIS
+      setTimeout(() => setErrorMessage(null), 3000);  // <-- ADD THIS
     } finally {
       setIsLoading(false);
     }
@@ -43,11 +56,16 @@ export default function HomePage() {
 
   const turnLightOff = async () => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
       setLightStatus('off');
       setMode('manual');
       setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Failed to turn light off', error);
+      setErrorMessage('Failed to turn light off');  // <-- ADD THIS
+      setTimeout(() => setErrorMessage(null), 3000);  // <-- ADD THIS
     } finally {
       setIsLoading(false);
     }
@@ -55,10 +73,15 @@ export default function HomePage() {
 
   const setAutoMode = async () => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
       setMode('auto');
       setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Failed to set auto mode', error);
+      setErrorMessage('Failed to set auto mode');  // <-- ADD THIS
+      setTimeout(() => setErrorMessage(null), 3000);  // <-- ADD THIS
     } finally {
       setIsLoading(false);
     }
@@ -91,6 +114,14 @@ export default function HomePage() {
           </View>
           <Text style={styles.headerTitle}>SmartSimLight</Text>
         </View>
+
+        {/* Error Message Banner */}
+        {errorMessage && (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={18} color="#ef4444" />
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        )}
 
         {/* Status Card */}
         <View style={styles.statusCard}>
@@ -364,5 +395,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a80',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ef444420',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  errorText: {
+    color: '#f87171',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
