@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
@@ -72,7 +72,12 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
       <StatusBar style="light" />
       
       <View style={styles.header}>
@@ -151,8 +156,8 @@ export default function SettingsScreen() {
           Use `ipconfig` (Windows) or `ifconfig` (Mac/Linux) to find your computer's IP address.
         </Text>
       </View>
-    </View>
-  );
+  </ScrollView>
+);
 }
 
 const styles = StyleSheet.create({
@@ -164,8 +169,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 50,
-    paddingBottom: 24,
+    paddingTop: 20,
+    paddingBottom: 20,
     gap: 12,
   },
   headerTitle: {
