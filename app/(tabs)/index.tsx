@@ -1,3 +1,5 @@
+import { useFocusEffect } from '@react-navigation/native';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -75,6 +77,34 @@ export default function HomePage() {
     };
     loadConfig();
   }, []);
+
+  // Reload config when screen comes into focus (after returning from Settings)
+  useFocusEffect(
+    React.useCallback(() => {
+      const reloadConfig = async () => {
+        try {
+          const savedUrl = await AsyncStorage.getItem('backendUrl');
+          if (savedUrl && savedUrl !== backendUrl) {
+            setBackendUrl(savedUrl);
+            // Re-check connection with new URL
+            if (!useMock) {
+              const connected = await testConnection(savedUrl);
+              setIsConnected(connected);
+              if (connected) {
+                setErrorMessage(null);
+                fetchStatus();
+              } else {
+                setErrorMessage('Cannot connect to backend. Check settings.');
+              }
+            }
+          }
+        } catch (error) {
+          // Silent fail
+        }
+      };
+      reloadConfig();
+    }, [backendUrl, useMock])
+  );
 
 
   // Re-check connection when backendUrl changes
