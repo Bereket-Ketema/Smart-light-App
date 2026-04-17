@@ -78,6 +78,11 @@ export default function SettingsScreen() {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
+
+      <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
+          >
       <StatusBar style="light" />
       
       <View style={styles.header}>
@@ -156,6 +161,7 @@ export default function SettingsScreen() {
           Use `ipconfig` (Windows) or `ifconfig` (Mac/Linux) to find your computer's IP address.
         </Text>
       </View>
+      </KeyboardAvoidingView>
   </ScrollView>
 );
 }
@@ -164,7 +170,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0f172a',
+  },
+  scrollContent: {
     padding: 16,
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
