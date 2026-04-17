@@ -11,6 +11,7 @@ import {
   sendVoiceCommand,
   testConnection 
 } from '@/services/api';
+const USE_MOCK_DATA = true;  // Change to false when backend is ready
 
 export default function HomePage() {
   const [lightStatus, setLightStatus] = useState('off');
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   //const [mockMotion, setMockMotion] = useState(false);
+  const [useMock, setUseMock] = useState(USE_MOCK_DATA);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [backendUrl, setBackendUrl] = useState('http://192.168.1.100:5000');
@@ -25,10 +27,15 @@ export default function HomePage() {
   // Test connection to backend when app starts
   useEffect(() => {
     const checkConnection = async () => {
+      // Skip connection test when using mock data
+      if (useMock) {
+        setIsConnected(true);
+        return;
+      }
+      
       const connected = await testConnection(backendUrl);
       setIsConnected(connected);
       if (connected) {
-        // Fetch initial status
         fetchStatus();
       } else {
         setErrorMessage('Cannot connect to backend. Check settings.');
@@ -47,6 +54,9 @@ export default function HomePage() {
     
     return () => clearInterval(interval);
   }, [isConnected]);
+
+
+  
 
   // Add this effect to poll status every 2 seconds
   useEffect(() => {
@@ -95,6 +105,28 @@ export default function HomePage() {
     loadConfig();
   }, []);
 
+  // MOCK MOTION SIMULATION - COMMENT THIS ENTIRE BLOCK WHEN BACKEND IS READY
+  useEffect(() => {
+    if (!useMock) return;
+    if (mode !== 'auto') return;
+  
+    const interval = setInterval(() => {
+      const motionDetected = Math.random() > 0.7;
+      
+      if (motionDetected && mode === 'auto') {
+        setLightStatus('on');
+        setTimeout(() => {
+          if (mode === 'auto') {
+            setLightStatus('off');
+          }
+        }, 3000);
+      }
+      setLastUpdated(new Date());
+    }, 5000);
+  
+    return () => clearInterval(interval);
+  }, [mode, useMock]);
+
   // Save backend URL whenever it changes
   const saveBackendUrl = async (url: string) => {
     try {
@@ -106,7 +138,15 @@ export default function HomePage() {
     }
   };
 
+  // REPLACE your existing fetchStatus with this
   const fetchStatus = async () => {
+    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
+    if (useMock) {
+      setLastUpdated(new Date());
+      return;
+    }
+    // END MOCK BLOCK
+    
     try {
       const response = await getLightStatus(backendUrl);
       setLightStatus(response.status);
@@ -120,8 +160,23 @@ export default function HomePage() {
   };
 
   const handleTurnLightOn = async () => {
+    if (isLoading) return; // Prevent multiple clicks
+    
     setIsLoading(true);
     setErrorMessage(null);
+    
+    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
+    if (useMock) {
+      setTimeout(() => {
+        setLightStatus('on');
+        setMode('manual');
+        setLastUpdated(new Date());
+        setIsLoading(false);
+      }, 300);
+      return;
+    }
+    // END MOCK BLOCK
+    
     try {
       const response = await turnLightOn(backendUrl);
       setLightStatus(response.status);
@@ -133,10 +188,25 @@ export default function HomePage() {
       setIsLoading(false);
     }
   };
-  
+
   const handleTurnLightOff = async () => {
+    if (isLoading) return; // Prevent multiple clicks
+    
     setIsLoading(true);
     setErrorMessage(null);
+    
+    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
+    if (useMock) {
+      setTimeout(() => {
+        setLightStatus('off');
+        setMode('manual');
+        setLastUpdated(new Date());
+        setIsLoading(false);
+      }, 300);
+      return;
+    }
+    // END MOCK BLOCK
+    
     try {
       const response = await turnLightOff(backendUrl);
       setLightStatus(response.status);
@@ -148,10 +218,24 @@ export default function HomePage() {
       setIsLoading(false);
     }
   };
-  
+
   const handleSetAutoMode = async () => {
+    if (isLoading) return; // Prevent multiple clicks
+    
     setIsLoading(true);
     setErrorMessage(null);
+    
+    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
+    if (useMock) {
+      setTimeout(() => {
+        setMode('auto');
+        setLastUpdated(new Date());
+        setIsLoading(false);
+      }, 300);
+      return;
+    }
+    // END MOCK BLOCK
+    
     try {
       const response = await setAutoMode(backendUrl);
       setLightStatus(response.status);
@@ -163,10 +247,33 @@ export default function HomePage() {
       setIsLoading(false);
     }
   };
-
+  
   const handleVoiceCommand = async (commandText: string) => {
+    if (isLoading) return; // Prevent multiple clicks
+    
     setIsLoading(true);
     setErrorMessage(null);
+    
+    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
+    if (useMock) {
+      setTimeout(() => {
+        const lowerCommand = commandText.toLowerCase();
+        if (lowerCommand.includes('on')) {
+          setLightStatus('on');
+          setMode('manual');
+        } else if (lowerCommand.includes('off')) {
+          setLightStatus('off');
+          setMode('manual');
+        } else if (lowerCommand.includes('auto')) {
+          setMode('auto');
+        }
+        setLastUpdated(new Date());
+        setIsLoading(false);
+      }, 300);
+      return;
+    }
+    // END MOCK BLOCK
+    
     try {
       const response = await sendVoiceCommand(commandText, backendUrl);
       setLightStatus(response.status);
@@ -204,7 +311,7 @@ export default function HomePage() {
           <View style={styles.headerIconContainer}>
             <Ionicons name="bulb" size={24} color="#fbbf24" />
           </View>
-          <Text style={styles.headerTitle}>SmartSimLight</Text>
+          <Text style={styles.headerTitle}>SmartLight</Text>
         </View>
 
         {/* Error Message Banner */}
@@ -296,6 +403,23 @@ export default function HomePage() {
           <View style={styles.separator} />
           <Text style={styles.timestamp}>{lastUpdated.toLocaleTimeString()}</Text>
         </View>
+
+        {/* MOCK TOGGLE BUTTON - COMMENT THIS ENTIRE BLOCK WHEN BACKEND IS READY */}
+      <TouchableOpacity 
+        style={styles.mockToggle}
+        onPress={() => setUseMock(!useMock)}
+        activeOpacity={0.7}
+      >
+        <Ionicons 
+          name={useMock ? 'construct' : 'wifi'} 
+          size={14} 
+          color="#94a3b8" 
+        />
+        <Text style={styles.mockToggleText}>
+          {useMock ? 'Mock Mode ON' : 'Mock Mode OFF'}
+        </Text>
+      </TouchableOpacity>
+      {/* END MOCK TOGGLE BUTTON */}
       </ScrollView>
 
       {isLoading && (
@@ -316,6 +440,8 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   header: {
+    marginTop: 3,
+    marginLeft: 56,
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: 50,
@@ -332,7 +458,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 23,
     fontWeight: '700',
     color: '#f1f5f9',
   },
@@ -506,4 +632,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
+  mockToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: '#1e293b',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  mockToggleText: {
+    color: '#94a3b8',
+    fontSize: 10,
+    fontWeight: '500',
+  }
 });
