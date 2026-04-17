@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { testConnection } from '@/services/api';
+import { useFocusEffect } from '@react-navigation/native';
+import React from 'react';
 
 export default function SettingsScreen() {
   const [backendUrl, setBackendUrl] = useState('');
@@ -15,6 +17,12 @@ export default function SettingsScreen() {
   useEffect(() => {
     loadSavedUrl();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadSavedUrl();
+    }, [])
+  );
 
   const loadSavedUrl = async () => {
     try {
@@ -38,6 +46,7 @@ export default function SettingsScreen() {
     setIsLoading(true);
     try {
       await AsyncStorage.setItem('backendUrl', backendUrl);
+      console.log('Saved URL:', backendUrl); // Add this line
       Alert.alert('Success', 'Backend URL saved successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to save backend URL');
