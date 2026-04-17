@@ -18,7 +18,6 @@ export default function HomePage() {
   const [mode, setMode] = useState('auto');
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  //const [mockMotion, setMockMotion] = useState(false);
   const [useMock, setUseMock] = useState(USE_MOCK_DATA);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -27,9 +26,9 @@ export default function HomePage() {
   // Test connection to backend when app starts
   useEffect(() => {
     const checkConnection = async () => {
-      // Skip connection test when using mock data
       if (useMock) {
         setIsConnected(true);
+        setErrorMessage(null);
         return;
       }
       
@@ -37,43 +36,16 @@ export default function HomePage() {
       setIsConnected(connected);
       if (connected) {
         fetchStatus();
+        setErrorMessage(null);
       } else {
-        setErrorMessage('Cannot connect to backend. Check settings.');
+        // Show error in the banner but don't log to console
+        setErrorMessage('Cannot connect to backend. Please check settings.');
       }
     };
     checkConnection();
-  }, []);
-
-  // Poll status every 2 seconds when connected
-  useEffect(() => {
-    if (!isConnected) return;
-    
-    const interval = setInterval(() => {
-      fetchStatus();
-    }, 2000);
-    
-    return () => clearInterval(interval);
-  }, [isConnected]);
+  }, [useMock, backendUrl]);
 
 
-  
-
-  // Add this effect to poll status every 2 seconds
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const response = await getLightStatus();
-        setLightStatus(response.status);
-        setMode(response.mode);
-        setLastUpdated(new Date());
-      } catch (error) {
-        console.error('Polling failed:', error);
-      }
-    };
-
-    const interval = setInterval(fetchStatus, 2000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (mode === 'auto') {
@@ -127,6 +99,16 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [mode, useMock]);
 
+  useEffect(() => {
+    if (!isConnected || useMock) return; // Don't poll when mock mode is on
+    
+    const interval = setInterval(() => {
+      fetchStatus();
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [isConnected, useMock]);
+
   // Save backend URL whenever it changes
   const saveBackendUrl = async (url: string) => {
     try {
@@ -138,9 +120,8 @@ export default function HomePage() {
     }
   };
 
-  // REPLACE your existing fetchStatus with this
   const fetchStatus = async () => {
-    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
+    // MOCK BLOCK - Skip real API call when using mock
     if (useMock) {
       setLastUpdated(new Date());
       return;
@@ -154,7 +135,6 @@ export default function HomePage() {
       setLastUpdated(new Date());
       setErrorMessage(null);
     } catch (error) {
-      console.error('Failed to fetch status:', error);
       setIsConnected(false);
     }
   };
@@ -416,7 +396,7 @@ export default function HomePage() {
           color="#94a3b8" 
         />
         <Text style={styles.mockToggleText}>
-          {useMock ? 'Mock Mode ON' : 'Mock Mode OFF'}
+          {useMock ? 'Mock Mode OFF' : 'Mock Mode ON'}
         </Text>
       </TouchableOpacity>
       {/* END MOCK TOGGLE BUTTON */}
