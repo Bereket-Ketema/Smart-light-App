@@ -178,14 +178,18 @@ export const testConnection = async (baseUrl?: string): Promise<boolean> => {
   const url = baseUrl || BASE_URL;
   
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    
     const response = await fetch(`${url}/status`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      signal: AbortSignal.timeout(3000), // 3 second timeout
+      signal: controller.signal,
     });
-
+    
+    clearTimeout(timeoutId);
     return response.ok;
   } catch (error) {
     console.error('Connection test failed:', error);
