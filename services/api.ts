@@ -192,7 +192,7 @@ export const testConnection = async (baseUrl?: string): Promise<boolean> => {
     clearTimeout(timeoutId);
     return response.ok;
   } catch (error) {
-    console.error('Connection test failed:', error);
+    //console.error('Connection test failed:', error);
     return false;
   }
 };
