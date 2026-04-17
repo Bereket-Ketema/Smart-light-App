@@ -68,14 +68,32 @@ export default function HomePage() {
         const savedUrl = await AsyncStorage.getItem('backendUrl');
         if (savedUrl) {
           setBackendUrl(savedUrl);
-          console.log('Loaded backend URL:', savedUrl);
         }
       } catch (error) {
-        console.error('Failed to load backend URL', error);
+        // Silent fail - keep default URL
       }
     };
     loadConfig();
   }, []);
+
+
+  // Re-check connection when backendUrl changes
+  useEffect(() => {
+    if (useMock) return;
+    
+    const checkConnection = async () => {
+      const connected = await testConnection(backendUrl);
+      setIsConnected(connected);
+      if (!connected) {
+        setErrorMessage('Cannot connect to backend. Check settings.');
+      } else {
+        setErrorMessage(null);
+        fetchStatus();
+      }
+    };
+    
+    checkConnection();
+  }, [backendUrl]);
 
   // MOCK MOTION SIMULATION - COMMENT THIS ENTIRE BLOCK WHEN BACKEND IS READY
   useEffect(() => {
