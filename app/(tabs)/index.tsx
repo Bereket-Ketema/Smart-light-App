@@ -348,7 +348,6 @@ export default function HomePage() {
           </View>
         )}
 
-          //light status
         <LightStatus lightStatus={lightStatus} mode={mode} />
 
         {/* Control Panel */}
@@ -370,7 +369,7 @@ export default function HomePage() {
           <Text style={styles.timestamp}>{lastUpdated.toLocaleTimeString()}</Text>
         </View>
 
-        {/* MOCK TOGGLE BUTTON - COMMENT THIS ENTIRE BLOCK WHEN BACKEND IS READY */}
+      {/* MOCK TOGGLE BUTTON - COMMENT THIS ENTIRE BLOCK WHEN BACKEND IS READY */}
       <TouchableOpacity 
         style={styles.mockToggle}
         onPress={() => setUseMock(!useMock)}
