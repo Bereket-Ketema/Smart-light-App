@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useState, useEffect } from 'react';
+import  React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -15,7 +16,7 @@ export default function ControlPage() {
   const [mode, setMode] = useState('auto');
   const [isConnected, setIsConnected] = useState(false);
   const [useMock, setUseMock] = useState(true);
-  const [backendUrl, setBackendUrl] = useState(CONFIG.DEFAULT_BACKEND_URL);
+  const [backendUrl, setBackendUrl] = useState<string>(CONFIG.DEFAULT_BACKEND_URL);
   const [isLoading, setIsLoading] = useState(false);
   
   // Advanced settings
@@ -39,6 +40,14 @@ export default function ControlPage() {
     loadConfig();
     checkConnection();
   }, []);
+
+  // Reload config when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadConfig();
+      checkConnection();
+    }, [])
+  );
 
   const loadConfig = async () => {
     try {
@@ -90,7 +99,8 @@ export default function ControlPage() {
   const handleSensitivityChange = (value: string) => {
     setMotionSensitivity(value);
     const option = sensitivityOptions.find(opt => opt.value === value);
-    addToHistory(`Motion sensitivity set to ${value} (${option?.probability * 100}% detection)`);
+    const probabilityPercent = option ? option.probability * 100 : 50;
+    addToHistory(`Motion sensitivity set to ${value} (${probabilityPercent}% detection)`);
   };
 
   const handleTimerChange = (seconds: number) => {
@@ -105,7 +115,10 @@ export default function ControlPage() {
 
   const getSensitivityProbability = () => {
     const option = sensitivityOptions.find(opt => opt.value === motionSensitivity);
-    return option ? option.probability * 100 : 50;
+    if (option && option.probability !== undefined) {
+      return option.probability * 100;
+    }
+    return 50;
   };
 
   const getTimerDisplay = (seconds: number) => {
