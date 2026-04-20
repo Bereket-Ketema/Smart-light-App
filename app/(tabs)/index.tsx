@@ -11,6 +11,8 @@ import LightStatus from '@/components/LightStatus';
 import ControlButtons from '@/components/ControlButtons';
 import VoiceCommandButton from '@/components/VoiceCommandButton';
 import MockToggle from '@/components/MockToggle';
+import ErrorBanner from '@/components/ErrorBanner';
+import ConnectionStatusBar from '@/components/ConnectionStatusBar';
 
 // Services
 import { 
@@ -63,21 +65,6 @@ export default function HomePage() {
   }, [useMock, backendUrl]);
 
 
-
-  useEffect(() => {
-    if (mode === 'auto') {
-      const interval = setInterval(() => {
-        // Randomly simulate motion every 5 seconds for testing
-        const motionDetected = Math.random() > 0.7;
-        if (motionDetected) {
-          setLightStatus('on');
-        } else {
-          setLightStatus('off');
-        }
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [mode]);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -302,18 +289,6 @@ export default function HomePage() {
     }
   };
 
-  const getStatusDisplay = () => {
-    if (mode === 'auto') {
-      return { text: 'Auto Mode', subtitle: 'Motion controlled', color: '#3b82f6' };
-    }
-    if (lightStatus === 'on') {
-      return { text: 'Light On', subtitle: 'Manual mode', color: '#22c55e' };
-    }
-    return { text: 'Light Off', subtitle: 'Manual mode', color: '#ef4444' };
-  };
-
-  const statusDisplay = getStatusDisplay();
-
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -325,12 +300,7 @@ export default function HomePage() {
         <Header/>
 
         {/* Error Message Banner */}
-        {errorMessage && (
-          <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle" size={18} color="#ef4444" />
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          </View>
-        )}
+        <ErrorBanner errorMessage={errorMessage} />
 
         <LightStatus lightStatus={lightStatus} mode={mode} />
 
@@ -343,15 +313,12 @@ export default function HomePage() {
           isConnected={isConnected}
         />
 
-        <VoiceCommandButton onVoicePress={() => handleVoiceCommand('auto mode')} />
+        <VoiceCommandButton onVoicePress={() => 
+          handleVoiceCommand('auto mode')} />
 
         {/* Status Bar */}
-        <View style={styles.statusBar}>
-          <View style={[styles.statusDot, { backgroundColor: isConnected ? '#22c55e' : '#ef4444' }]} />
-          <Text style={styles.statusBarText}>{isConnected ? 'Connected' : 'Disconnected'}</Text>
-          <View style={styles.separator} />
-          <Text style={styles.timestamp}>{lastUpdated.toLocaleTimeString()}</Text>
-        </View>
+        <ConnectionStatusBar isConnected={isConnected} 
+          lastUpdated={lastUpdated} />
 
         <MockToggle 
           useMock={useMock} 
@@ -382,50 +349,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
-  panel: {
-    backgroundColor: '#1e293b',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-  },
-  panelTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#94a3b8',
-    marginBottom: 12,
-  },
-  buttonGrid: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  statusBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    gap: 8,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#22c55e',
-  },
-  statusBarText: {
-    fontSize: 11,
-    color: '#64748b',
-  },
-  separator: {
-    width: 1,
-    height: 10,
-    backgroundColor: '#334155',
-  },
-  timestamp: {
-    fontSize: 11,
-    color: '#64748b',
-  },
   loadingOverlay: {
     position: 'absolute',
     top: 0,
@@ -435,22 +358,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a80',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ef444420',
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  errorText: {
-    color: '#f87171',
-    fontSize: 12,
-    fontWeight: '500',
   },
 });
