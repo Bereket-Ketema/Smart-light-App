@@ -34,7 +34,6 @@ const USE_MOCK_DATA = true;
 export default function HomePage() {
   const [lightStatus, setLightStatus] = useState('off');
   const [mode, setMode] = useState('auto');
-  const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [useMock, setUseMock] = useState(USE_MOCK_DATA);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -173,6 +172,11 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [isConnected, useMock]);
 
+  // API hook for loading and error management
+  const { isLoading: apiLoading, error: apiError, execute, clearError } = useApi({
+    onError: (err) => setErrorMessage(err.message),
+  });
+
   // Save backend URL whenever it changes
   const saveBackendUrl = async (url: string) => {
     try {
@@ -204,101 +208,75 @@ export default function HomePage() {
   };
 
   const handleTurnLightOn = async () => {
-    if (isLoading) return; // Prevent multiple clicks
+    if (apiLoading) return;
     
-    setIsLoading(true);
     setErrorMessage(null);
     
-    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
     if (useMock) {
       setTimeout(() => {
         setLightStatus('on');
         setMode('manual');
         setLastUpdated(new Date());
-        setIsLoading(false);
-      }, 300);
+      }, CONFIG.MOCK_DELAY_MS);
       return;
     }
-    // END MOCK BLOCK
     
-    try {
-      const response = await turnLightOn(backendUrl);
-      setLightStatus(response.status);
-      setMode(response.mode);
+    const result = await execute(() => turnLightOn(backendUrl));
+    if (result) {
+      setLightStatus(result.status as 'on' | 'off');
+      setMode(result.mode as 'auto' | 'manual');
       setLastUpdated(new Date());
-    } catch (error) {
-      setErrorMessage('Failed to turn light on');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleTurnLightOff = async () => {
-    if (isLoading) return; // Prevent multiple clicks
+    if (apiLoading) return;
     
-    setIsLoading(true);
     setErrorMessage(null);
     
-    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
     if (useMock) {
       setTimeout(() => {
         setLightStatus('off');
         setMode('manual');
         setLastUpdated(new Date());
-        setIsLoading(false);
-      }, 300);
+      }, CONFIG.MOCK_DELAY_MS);
       return;
     }
-    // END MOCK BLOCK
     
-    try {
-      const response = await turnLightOff(backendUrl);
-      setLightStatus(response.status);
-      setMode(response.mode);
+    const result = await execute(() => turnLightOff(backendUrl));
+    if (result) {
+      setLightStatus(result.status as 'on' | 'off');
+      setMode(result.mode as 'auto' | 'manual');
       setLastUpdated(new Date());
-    } catch (error) {
-      setErrorMessage('Failed to turn light off');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleSetAutoMode = async () => {
-    if (isLoading) return; // Prevent multiple clicks
+    if (apiLoading) return;
     
-    setIsLoading(true);
     setErrorMessage(null);
     
-    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
     if (useMock) {
       setTimeout(() => {
         setMode('auto');
         setLastUpdated(new Date());
-        setIsLoading(false);
-      }, 300);
+      }, CONFIG.MOCK_DELAY_MS);
       return;
     }
-    // END MOCK BLOCK
     
-    try {
-      const response = await setAutoMode(backendUrl);
-      setLightStatus(response.status);
-      setMode(response.mode);
+    const result = await execute(() => setAutoMode(backendUrl));
+    if (result) {
+      setLightStatus(result.status as 'on' | 'off');
+      setMode(result.mode as 'auto' | 'manual');
       setLastUpdated(new Date());
-    } catch (error) {
-      setErrorMessage('Failed to set auto mode');
-    } finally {
-      setIsLoading(false);
     }
   };
   
   const handleVoiceCommand = async (commandText: string) => {
-    if (isLoading) return; // Prevent multiple clicks
+    if (apiLoading) return;
     
-    setIsLoading(true);
     setErrorMessage(null);
     
-    // MOCK BLOCK - COMMENT THIS IF BLOCK WHEN BACKEND IS READY
     if (useMock) {
       setTimeout(() => {
         const lowerCommand = commandText.toLowerCase();
@@ -312,21 +290,15 @@ export default function HomePage() {
           setMode('auto');
         }
         setLastUpdated(new Date());
-        setIsLoading(false);
-      }, 300);
+      }, CONFIG.MOCK_DELAY_MS);
       return;
     }
-    // END MOCK BLOCK
     
-    try {
-      const response = await sendVoiceCommand(commandText, backendUrl);
-      setLightStatus(response.status);
-      setMode(response.mode);
+    const result = await execute(() => sendVoiceCommand(commandText, backendUrl));
+    if (result) {
+      setLightStatus(result.status as 'on' | 'off');
+      setMode(result.mode as 'auto' | 'manual');
       setLastUpdated(new Date());
-    } catch (error) {
-      setErrorMessage('Voice command failed');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -367,7 +339,7 @@ export default function HomePage() {
           onTurnLightOn={handleTurnLightOn}
           onTurnLightOff={handleTurnLightOff}
           onSetAutoMode={handleSetAutoMode}
-          isLoading={isLoading}
+          isLoading={apiLoading}
           isConnected={isConnected}
         />
 
@@ -393,7 +365,7 @@ export default function HomePage() {
         />
       </ScrollView>
 
-      {isLoading && (
+      {apiLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#3b82f6" />
         </View>
