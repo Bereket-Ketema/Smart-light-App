@@ -333,10 +333,13 @@ export default function HomePage() {
             <ConnectionStatusBar isConnected={isConnected} lastUpdated={lastUpdated} />
             <MockToggle 
               useMock={useMock} 
-              onToggle={() => {
-                setUseMock(!useMock);
+              onToggle={async () => {
+                const newMockValue = !useMock;
+                setUseMock(newMockValue);
                 setErrorMessage(null);
-                if (!useMock) {
+                // Save to AsyncStorage
+                await AsyncStorage.setItem('useMock', String(newMockValue));
+                if (!newMockValue) {
                   setIsConnected(true);
                 }
               }} 
