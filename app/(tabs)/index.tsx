@@ -381,22 +381,16 @@ export default function HomePage() {
           <Text style={styles.timestamp}>{lastUpdated.toLocaleTimeString()}</Text>
         </View>
 
-      {/* MOCK TOGGLE BUTTON - COMMENT THIS ENTIRE BLOCK WHEN BACKEND IS READY */}
-      <TouchableOpacity 
-        style={styles.mockToggle}
-        onPress={() => setUseMock(!useMock)}
-        activeOpacity={0.7}
-      >
-        <Ionicons 
-          name={useMock ? 'construct' : 'wifi'} 
-          size={14} 
-          color="#94a3b8" 
+        <MockToggle 
+          useMock={useMock} 
+          onToggle={() => {
+            setUseMock(!useMock);
+            setErrorMessage(null);
+            if (!useMock) {
+              setIsConnected(true);
+            }
+          }} 
         />
-        <Text style={styles.mockToggleText}>
-          {useMock ? 'Mock Mode OFF' : 'Mock Mode ON'}
-        </Text>
-      </TouchableOpacity>
-      {/* END MOCK TOGGLE BUTTON */}
       </ScrollView>
 
       {isLoading && (
@@ -487,21 +481,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  mockToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: '#1e293b',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  mockToggleText: {
-    color: '#94a3b8',
-    fontSize: 10,
-    fontWeight: '500',
-  }
 });
