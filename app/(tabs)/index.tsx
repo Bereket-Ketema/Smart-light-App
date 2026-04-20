@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,7 +9,7 @@ import React from 'react';
 import Header from '@/components/Header';
 import LightStatus from '@/components/LightStatus';
 import ControlButtons from '@/components/ControlButtons';
-import VoiceCommandButton from '@/components/VoiceCommandButton';
+import VoiceRecognitionButton from '@/components/VoiceRecognitionButton';
 import MockToggle from '@/components/MockToggle';
 import ErrorBanner from '@/components/ErrorBanner';
 import ConnectionStatusBar from '@/components/ConnectionStatusBar';
@@ -33,6 +33,7 @@ import { CONFIG } from '@/constants/config';
 const USE_MOCK_DATA = true;
 
 export default function HomePage() {
+  const [refreshing, setRefreshing] = useState(false);
   const [lightStatus, setLightStatus] = useState('off');
   const [mode, setMode] = useState('auto');
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -278,6 +279,16 @@ export default function HomePage() {
     }
   };
 
+  const onRefresh = async () => {
+  setRefreshing(true);
+  if (useMock) {
+    setLastUpdated(new Date());
+  } else if (isConnected) {
+    await fetchStatus();
+  }
+  setRefreshing(false);
+ };
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -285,6 +296,14 @@ export default function HomePage() {
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor="#3b82f6"
+            colors={['#3b82f6']}
+          />
+        }
       >
         <Header/>
 
@@ -302,8 +321,10 @@ export default function HomePage() {
           isConnected={isConnected}
         />
 
-        <VoiceCommandButton onVoicePress={() => 
-          handleVoiceCommand('auto mode')} />
+        <VoiceRecognitionButton 
+          onCommand={handleVoiceCommand}
+          isProcessing={apiLoading}
+        />
 
         {/* Status Bar */}
         <ConnectionStatusBar isConnected={isConnected} 
