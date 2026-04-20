@@ -1,23 +1,35 @@
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useState, useEffect, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
-import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Components
 import Header from '@/components/Header';
 import LightStatus from '@/components/LightStatus';
 import ControlButtons from '@/components/ControlButtons';
 import VoiceCommandButton from '@/components/VoiceCommandButton';
+import MockToggle from '@/components/MockToggle';
+
+// Services
 import { 
   turnLightOn, 
   turnLightOff, 
+  getLightStatus,
   setAutoMode, 
-  getLightStatus, 
   sendVoiceCommand,
   testConnection 
 } from '@/services/api';
-const USE_MOCK_DATA = true;  // Change to false when backend is ready
+
+// Hooks
+import { useApi } from '@/hooks/useApi';
+
+// Constants
+import { CONFIG } from '@/constants/config';
+import { Ionicons } from '@expo/vector-icons';
+
+const USE_MOCK_DATA = true;
 
 export default function HomePage() {
   const [lightStatus, setLightStatus] = useState('off');
