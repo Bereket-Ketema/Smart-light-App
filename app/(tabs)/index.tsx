@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import React from 'react';
@@ -29,7 +29,6 @@ import { useApi } from '@/hooks/useApi';
 
 // Constants
 import { CONFIG } from '@/constants/config';
-import { Ionicons } from '@expo/vector-icons';
 
 const USE_MOCK_DATA = true;
 
@@ -164,16 +163,6 @@ export default function HomePage() {
     onError: (err) => setErrorMessage(err.message),
   });
 
-  // Save backend URL whenever it changes
-  const saveBackendUrl = async (url: string) => {
-    try {
-      await AsyncStorage.setItem('backendUrl', url);
-      setBackendUrl(url);
-      console.log('Saved backend URL:', url);
-    } catch (error) {
-      console.error('Failed to save backend URL', error);
-    }
-  };
 
   const fetchStatus = async () => {
     // MOCK BLOCK - Skip real API call when using mock
