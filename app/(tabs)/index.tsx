@@ -13,6 +13,7 @@ import VoiceRecognitionButton from '@/components/VoiceRecognitionButton';
 import MockToggle from '@/components/MockToggle';
 import ErrorBanner from '@/components/ErrorBanner';
 import ConnectionStatusBar from '@/components/ConnectionStatusBar';
+import EmptyState from '@/components/EmptyState';
 
 // Services
 import { 
@@ -307,39 +308,41 @@ export default function HomePage() {
       >
         <Header/>
 
-        {/* Error Message Banner */}
-        <ErrorBanner errorMessage={errorMessage} />
+        {!isConnected && !useMock && (
+          <EmptyState onRetry={() => {
+            testConnection(backendUrl).then(setIsConnected);
+          }} />
+        )}
 
-        <LightStatus lightStatus={lightStatus} mode={mode} />
-
-        {/* Control Panel */}
-        <ControlButtons 
-          onTurnLightOn={handleTurnLightOn}
-          onTurnLightOff={handleTurnLightOff}
-          onSetAutoMode={handleSetAutoMode}
-          isLoading={apiLoading}
-          isConnected={isConnected}
-        />
-
-        <VoiceRecognitionButton 
-          onCommand={handleVoiceCommand}
-          isProcessing={apiLoading}
-        />
-
-        {/* Status Bar */}
-        <ConnectionStatusBar isConnected={isConnected} 
-          lastUpdated={lastUpdated} />
-
-        <MockToggle 
-          useMock={useMock} 
-          onToggle={() => {
-            setUseMock(!useMock);
-            setErrorMessage(null);
-            if (!useMock) {
-              setIsConnected(true);
-            }
-          }} 
-        />
+        {/* Only show controls when connected or in mock mode */}
+        {(isConnected || useMock) && (
+          <>
+            <ErrorBanner errorMessage={errorMessage} />
+            <LightStatus lightStatus={lightStatus} mode={mode} />
+            <ControlButtons 
+              onTurnLightOn={handleTurnLightOn}
+              onTurnLightOff={handleTurnLightOff}
+              onSetAutoMode={handleSetAutoMode}
+              isLoading={apiLoading}
+              isConnected={isConnected}
+            />
+            <VoiceRecognitionButton 
+              onCommand={handleVoiceCommand}
+              isProcessing={apiLoading}
+            />
+            <ConnectionStatusBar isConnected={isConnected} lastUpdated={lastUpdated} />
+            <MockToggle 
+              useMock={useMock} 
+              onToggle={() => {
+                setUseMock(!useMock);
+                setErrorMessage(null);
+                if (!useMock) {
+                  setIsConnected(true);
+                }
+              }} 
+            />
+          </>
+        )}
       </ScrollView>
 
       {apiLoading && (
