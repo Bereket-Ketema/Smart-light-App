@@ -6,14 +6,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import React from 'react';
 
 // Components
-import Header from '@/components/Header';
-import LightStatus from '@/components/LightStatus';
-import ControlButtons from '@/components/ControlButtons';
-import VoiceRecognitionButton from '@/components/VoiceRecognitionButton';
-import MockToggle from '@/components/MockToggle';
-import ErrorBanner from '@/components/ErrorBanner';
-import ConnectionStatusBar from '@/components/ConnectionStatusBar';
-import EmptyState from '@/components/EmptyState';
+import Header from '@/components/index/Header';
+import LightStatus from '@/components/index/LightStatus';
+import ControlButtons from '@/components/index/ControlButtons';
+import VoiceRecognitionButton from '@/components/index/VoiceRecognitionButton';
+import MockToggle from '@/components/index/MockToggle';
+import ErrorBanner from '@/components/index/ErrorBanner';
+import ConnectionStatusBar from '@/components/index/ConnectionStatusBar';
+import EmptyState from '@/components/index/EmptyState';
 
 // Services
 import { 
@@ -308,16 +308,19 @@ export default function HomePage() {
       >
         <Header/>
 
+        {/* Show empty state only when not connected and not in mock mode */}
         {!isConnected && !useMock && (
           <EmptyState onRetry={() => {
             testConnection(backendUrl).then(setIsConnected);
           }} />
         )}
 
-        {/* Only show controls when connected or in mock mode */}
+        {/* Always show error banner if there is an error */}
+        <ErrorBanner errorMessage={errorMessage} />
+
+        {/* Show main controls only when connected or in mock mode */}
         {(isConnected || useMock) && (
           <>
-            <ErrorBanner errorMessage={errorMessage} />
             <LightStatus lightStatus={lightStatus} mode={mode} />
             <ControlButtons 
               onTurnLightOn={handleTurnLightOn}
@@ -331,21 +334,30 @@ export default function HomePage() {
               isProcessing={apiLoading}
             />
             <ConnectionStatusBar isConnected={isConnected} lastUpdated={lastUpdated} />
-            <MockToggle 
-              useMock={useMock} 
-              onToggle={async () => {
-                const newMockValue = !useMock;
-                setUseMock(newMockValue);
-                setErrorMessage(null);
-                // Save to AsyncStorage
-                await AsyncStorage.setItem('useMock', String(newMockValue));
-                if (!newMockValue) {
-                  setIsConnected(true);
-                }
-              }} 
-            />
           </>
         )}
+
+        {/* MockToggle - Always visible, placed outside the conditional */}
+        <MockToggle 
+          useMock={useMock} 
+          onToggle={async () => {
+            const newMockValue = !useMock;
+            setUseMock(newMockValue);
+            setErrorMessage(null);
+            await AsyncStorage.setItem('useMock', String(newMockValue));
+            if (newMockValue) {
+              // When turning mock mode ON, set connected to true
+              setIsConnected(true);
+            } else {
+              // When turning mock mode OFF, check real connection
+              const connected = await testConnection(backendUrl);
+              setIsConnected(connected);
+              if (!connected) {
+                setErrorMessage('Cannot connect to backend. Check settings or turn on Mock Mode.');
+              }
+            }
+          }} 
+        />
       </ScrollView>
 
       {apiLoading && (
