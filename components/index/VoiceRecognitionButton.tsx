@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
@@ -8,70 +8,86 @@ interface VoiceRecognitionButtonProps {
 }
 
 export default function VoiceRecognitionButton({ onCommand, isProcessing }: VoiceRecognitionButtonProps) {
-  const [isListening, setIsListening] = useState(false);
-  const [listeningText, setListeningText] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [inputText, setInputText] = useState('');
 
-  // Note: This is a simplified version. For production, integrate:
-  // - expo-speech-recognition for Expo
-  // - @react-native-voice/voice for React Native CLI
-  
-  const startListening = async () => {
-    setIsListening(true);
-    setListeningText('Listening...');
-    
-    // Mock voice recognition for now - replace with actual library
-    // This simulates listening for 2 seconds then returning a command
-    setTimeout(() => {
-      setIsListening(false);
-      setListeningText('');
-      
-      // For demo purposes, show a prompt to enter command
-      // In production, this would be actual speech recognition
-      Alert.prompt(
-        'Voice Command',
-        'Say: light on, light off, or auto mode',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Send', 
-            onPress: (text: any) => {
-              if (text) onCommand(text);
-            }
-          }
-        ],
-        'plain-text'
-      );
-    }, 2000);
+  const handleSend = () => {
+    if (inputText.trim()) {
+      onCommand(inputText.trim());
+      setInputText('');
+      setModalVisible(false);
+    }
   };
 
   return (
-    <TouchableOpacity 
-      style={[styles.voiceCard, (isListening || isProcessing) && styles.disabledCard]}
-      onPress={startListening}
-      disabled={isListening || isProcessing}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.voiceIconContainer, (isListening || isProcessing) && styles.activeIcon]}>
-        <Ionicons 
-          name={isListening ? 'mic' : 'mic-outline'} 
-          size={22} 
-          color={isListening ? '#22c55e' : '#8b5cf6'} 
-        />
-      </View>
-      <View style={styles.voiceTextContainer}>
-        <Text style={styles.voiceTitle}>
-          {isListening ? 'Listening...' : 'Voice Command'}
-        </Text>
-        <Text style={styles.voiceSubtitle}>
-          {isListening ? 'Say "light on", "light off", or "auto mode"' : 'Tap and speak to control the light'}
-        </Text>
-      </View>
-      {isListening && (
-        <View style={styles.listeningDot}>
-          <View style={styles.pulseDot} />
+    <>
+      <TouchableOpacity 
+        style={[styles.voiceCard, isProcessing && styles.disabledCard]}
+        onPress={() => setModalVisible(true)}
+        disabled={isProcessing}
+        activeOpacity={0.7}
+      >
+        <View style={styles.voiceIconContainer}>
+          <Ionicons name="mic-outline" size={22} color="#8b5cf6" />
         </View>
-      )}
-    </TouchableOpacity>
+        <View style={styles.voiceTextContainer}>
+          <Text style={styles.voiceTitle}>Voice Command</Text>
+          <Text style={styles.voiceSubtitle}>Tap and type "light on", "light off", or "auto mode"</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color="#475569" />
+      </TouchableOpacity>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Voice Command</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={styles.modalSubtitle}>
+          Say or type: "light on", "light off", or "auto mode"
+            </Text>
+            
+            <TextInput
+              style={styles.textInput}
+              placeholder="Type your command here..."
+              placeholderTextColor="#64748b"
+              value={inputText}
+              onChangeText={setInputText}
+              autoFocus={true}
+              onSubmitEditing={handleSend}
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]} 
+                onPress={() => {
+                  setModalVisible(false);
+                  setInputText('');
+                }}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.sendButton]} 
+                onPress={handleSend}
+              >
+                <Text style={styles.sendButtonText}>Send</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -98,9 +114,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 14,
   },
-  activeIcon: {
-    backgroundColor: '#22c55e20',
-  },
   voiceTextContainer: {
     flex: 1,
   },
@@ -114,18 +127,70 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#94a3b8',
   },
-  listeningDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#22c55e',
-    marginLeft: 8,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  pulseDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#22c55e',
-    opacity: 0.5,
+  modalContent: {
+    backgroundColor: '#1e293b',
+    borderRadius: 24,
+    padding: 20,
+    width: '85%',
+    maxWidth: 350,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#f1f5f9',
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#94a3b8',
+    marginBottom: 20,
+  },
+  textInput: {
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#334155',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#334155',
+  },
+  cancelButtonText: {
+    color: '#94a3b8',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  sendButton: {
+    backgroundColor: '#8b5cf6',
+  },
+  sendButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
