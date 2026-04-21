@@ -1,5 +1,5 @@
 // services/api.ts
-
+import { addErrorLog } from '@/app/(tabs)/error-log';
 const BASE_URL = 'http://192.168.1.100:5000'; // Temporary default - will come from settings later
 
 interface ApiResponse {
@@ -38,7 +38,7 @@ export const turnLightOn = async (baseUrl?: string): Promise<ApiResponse> => {
     const data = await response.json();
     return { status: data.status, mode: data.mode };
   } catch (error) {
-    console.error('Failed to turn light on:', error);
+    addErrorLog(error instanceof Error ? error.message : String(error), 'API');
     throw error;
   }
 };
@@ -62,7 +62,7 @@ export const turnLightOff = async (baseUrl?: string): Promise<ApiResponse> => {
     const data = await response.json();
     return { status: data.status, mode: data.mode };
   } catch (error) {
-    console.error('Failed to turn light off:', error);
+    addErrorLog(error instanceof Error ? error.message : String(error), 'API');
     throw error;
   }
 };
@@ -86,7 +86,7 @@ export const setAutoMode = async (baseUrl?: string): Promise<ApiResponse> => {
     const data = await response.json();
     return { status: data.status, mode: data.mode };
   } catch (error) {
-    console.error('Failed to set auto mode:', error);
+    addErrorLog(error instanceof Error ? error.message : String(error), 'API');
     throw error;
   }
 };
@@ -114,7 +114,7 @@ export const getLightStatus = async (baseUrl?: string): Promise<StatusResponse> 
       lastMotion: data.lastMotion 
     };
   } catch (error) {
-    console.error('Failed to get light status:', error);
+    addErrorLog(error instanceof Error ? error.message : String(error), 'API');
     throw error;
   }
 };
@@ -143,7 +143,7 @@ export const sendVoiceCommand = async (command: string, baseUrl?: string): Promi
       command: command 
     };
   } catch (error) {
-    console.error('Failed to send voice command:', error);
+    addErrorLog(error instanceof Error ? error.message : String(error), 'API');
     throw error;
   }
 };
@@ -168,7 +168,7 @@ export const sendMotionData = async (motionDetected: boolean, baseUrl?: string):
     const data = await response.json();
     return { status: data.status, mode: data.mode };
   } catch (error) {
-    console.error('Failed to send motion data:', error);
+    addErrorLog(error instanceof Error ? error.message : String(error), 'API');
     throw error;
   }
 };
@@ -192,7 +192,11 @@ export const testConnection = async (baseUrl?: string): Promise<boolean> => {
     clearTimeout(timeoutId);
     return response.ok;
   } catch (error) {
-    //console.error('Connection test failed:', error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      addErrorLog('Connection timeout - backend not reachable', 'testConnection');
+      return false;
+    }
+    addErrorLog(error instanceof Error ? error.message : String(error), 'testConnection');
     return false;
   }
 };
