@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import React from 'react';
 
+
 // Components
 import Header from '@/components/index/Header';
 import LightStatus from '@/components/index/LightStatus';
@@ -251,6 +252,7 @@ export default function HomePage() {
   };
   
   const handleVoiceCommand = async (commandText: string) => {
+    console.log('Voice command received:', commandText); // Add this line
     if (apiLoading) return;
     
     setErrorMessage(null);
