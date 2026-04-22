@@ -10,7 +10,9 @@ import React from 'react';
 import Header from '@/components/index/Header';
 import LightStatus from '@/components/index/LightStatus';
 import ControlButtons from '@/components/index/ControlButtons';
-import VoiceRecognitionButton from '@/components/index/VoiceRecognitionButton';
+//import VoiceRecognitionButton from '@/components/index/VoiceRecognitionButton';
+// import RealVoiceRecognitionButton from '@/components/index/RealVoiceRecognitionButton';
+import SimpleVoiceRecorder from '@/components/index/SimpleVoiceRecorder';
 import MockToggle from '@/components/index/MockToggle';
 import ErrorBanner from '@/components/index/ErrorBanner';
 import ConnectionStatusBar from '@/components/index/ConnectionStatusBar';
@@ -331,10 +333,10 @@ export default function HomePage() {
               isLoading={apiLoading}
               isConnected={isConnected}
             />
-            <VoiceRecognitionButton 
-              onCommand={handleVoiceCommand}
-              isProcessing={apiLoading}
-            />
+            <SimpleVoiceRecorder 
+            onCommand={handleVoiceCommand}
+            isProcessing={apiLoading}
+          />
             <ConnectionStatusBar isConnected={isConnected} lastUpdated={lastUpdated} />
           </>
         )}
