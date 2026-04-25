@@ -5,7 +5,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import React from 'react';
 
-
 // Components
 import Header from '@/components/index/Header';
 import LightStatus from '@/components/index/LightStatus';
