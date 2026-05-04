@@ -38,13 +38,6 @@ export default function TabLayout() {
         tabBarIcon: ({ color }) => <AntDesign name="setting" size={24} color="black" />,
       }}
     />
-    <Tabs.Screen
-        name="error-log"
-        options={{
-        title: 'Error',
-        tabBarIcon: ({ color }) => <FontAwesome name="bug" size={24} color="black" />,
-      }}
-    />
     </Tabs>
   );
 }
