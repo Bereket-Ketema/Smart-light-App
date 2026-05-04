@@ -1,7 +1,7 @@
 // constants/config.ts
 
 export const CONFIG = {
-  DEFAULT_BACKEND_URL: 'http://192.168.1.100:5000',
+  DEFAULT_BACKEND_URL: 'http://10.42.0.50:5000',
   API_TIMEOUT: 3000,
   POLLING_INTERVAL_MS: 2000,
   MOCK_DELAY_MS: 300,
