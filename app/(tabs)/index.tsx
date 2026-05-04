@@ -49,18 +49,20 @@ export default function HomePage() {
   useEffect(() => {
     const checkConnection = async () => {
       if (useMock) {
+        console.log('🎭 Mock Mode: Connection check - Mock mode active, setting connected=true');
         setIsConnected(true);
         setErrorMessage(null);
         return;
       }
       
+      console.log('🌐 Real Mode: Testing connection to backend at', backendUrl);
       const connected = await testConnection(backendUrl);
+      console.log('📡 Connection test result:', connected ? 'CONNECTED' : 'DISCONNECTED');
       setIsConnected(connected);
       if (connected) {
         fetchStatus();
         setErrorMessage(null);
       } else {
-        // Show error in the banner but don't log to console
         setErrorMessage('Cannot connect to backend. Please check settings.');
       }
     };
@@ -163,8 +165,18 @@ export default function HomePage() {
   }, [isConnected, useMock]);
 
   // API hook for loading and error management
-  const { isLoading: apiLoading, error: apiError, execute, clearError } = useApi({
-    onError: (err) => setErrorMessage(err.message),
+  const { isLoading: apiLoading, execute } = useApi({
+    onError: (err) => {
+      console.log('❌ useApi Error Handler:', err.message);
+      // Show user-friendly error message
+      if (err.message.includes('Failed to fetch') || err.message.includes('Network request failed')) {
+        setErrorMessage('Cannot reach the backend server. Please check if it is running.');
+      } else if (err.message.includes('HTTP error')) {
+        setErrorMessage('Backend server error. Please try again later.');
+      } else {
+        setErrorMessage(`Error: ${err.message}`);
+      }
+    },
   });
 
 
@@ -188,21 +200,26 @@ export default function HomePage() {
   };
 
   const handleTurnLightOn = async () => {
+    console.log('🖱️ User Action: Turn Light On button pressed');
     if (apiLoading) return;
     
     setErrorMessage(null);
     
     if (useMock) {
+      console.log('🎭 Mock Mode: Simulating turn light on');
       setTimeout(() => {
         setLightStatus('on');
         setMode('manual');
         setLastUpdated(new Date());
+        console.log('✅ Mock: Light turned on');
       }, CONFIG.MOCK_DELAY_MS);
       return;
     }
     
+    console.log('🌐 Real Mode: Calling API turnLightOn');
     const result = await execute(() => turnLightOn(backendUrl));
     if (result) {
+      console.log('✅ API: Light turned on successfully', result);
       setLightStatus(result.status as 'on' | 'off');
       setMode(result.mode as 'auto' | 'manual');
       setLastUpdated(new Date());
@@ -210,21 +227,26 @@ export default function HomePage() {
   };
 
   const handleTurnLightOff = async () => {
+    console.log('🖱️ User Action: Turn Light Off button pressed');
     if (apiLoading) return;
     
     setErrorMessage(null);
     
     if (useMock) {
+      console.log('🎭 Mock Mode: Simulating turn light off');
       setTimeout(() => {
         setLightStatus('off');
         setMode('manual');
         setLastUpdated(new Date());
+        console.log('✅ Mock: Light turned off');
       }, CONFIG.MOCK_DELAY_MS);
       return;
     }
     
+    console.log('🌐 Real Mode: Calling API turnLightOff');
     const result = await execute(() => turnLightOff(backendUrl));
     if (result) {
+      console.log('✅ API: Light turned off successfully', result);
       setLightStatus(result.status as 'on' | 'off');
       setMode(result.mode as 'auto' | 'manual');
       setLastUpdated(new Date());
@@ -232,20 +254,25 @@ export default function HomePage() {
   };
 
   const handleSetAutoMode = async () => {
+    console.log('🖱️ User Action: Auto Mode button pressed');
     if (apiLoading) return;
     
     setErrorMessage(null);
     
     if (useMock) {
+      console.log('🎭 Mock Mode: Simulating auto mode');
       setTimeout(() => {
         setMode('auto');
         setLastUpdated(new Date());
+        console.log('✅ Mock: Auto mode activated');
       }, CONFIG.MOCK_DELAY_MS);
       return;
     }
     
+    console.log('🌐 Real Mode: Calling API setAutoMode');
     const result = await execute(() => setAutoMode(backendUrl));
     if (result) {
+      console.log('✅ API: Auto mode activated successfully', result);
       setLightStatus(result.status as 'on' | 'off');
       setMode(result.mode as 'auto' | 'manual');
       setLastUpdated(new Date());
@@ -253,30 +280,36 @@ export default function HomePage() {
   };
   
   const handleVoiceCommand = async (commandText: string) => {
-    console.log('Voice command received:', commandText); // Add this line
+    console.log('🎤 User Action: Voice command received:', commandText);
     if (apiLoading) return;
     
     setErrorMessage(null);
     
     if (useMock) {
+      console.log('🎭 Mock Mode: Simulating voice command');
       setTimeout(() => {
         const lowerCommand = commandText.toLowerCase();
         if (lowerCommand.includes('on')) {
           setLightStatus('on');
           setMode('manual');
+          console.log('✅ Mock: Voice command - Light on');
         } else if (lowerCommand.includes('off')) {
           setLightStatus('off');
           setMode('manual');
+          console.log('✅ Mock: Voice command - Light off');
         } else if (lowerCommand.includes('auto')) {
           setMode('auto');
+          console.log('✅ Mock: Voice command - Auto mode');
         }
         setLastUpdated(new Date());
       }, CONFIG.MOCK_DELAY_MS);
       return;
     }
     
+    console.log('🌐 Real Mode: Calling API sendVoiceCommand');
     const result = await execute(() => sendVoiceCommand(commandText, backendUrl));
     if (result) {
+      console.log('✅ API: Voice command executed successfully', result);
       setLightStatus(result.status as 'on' | 'off');
       setMode(result.mode as 'auto' | 'manual');
       setLastUpdated(new Date());
