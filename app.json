@@ -57,7 +57,8 @@
         {
           "microphonePermission": "Allow SmartLight to access your microphone for voice commands."
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
