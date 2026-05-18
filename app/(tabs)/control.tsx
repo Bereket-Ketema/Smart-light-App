@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Services
-import { getLightStatus, testConnection } from '@/services/api';
+import { getLightStatus, testConnection, setBrightness,  setSensitivity, setTimer } from '@/services/api';
 
 // Constants
 import { CONFIG } from '@/constants/config';
@@ -60,15 +60,55 @@ export default function ControlPage() {
             setIsConnected(connected);
             if (connected) {
               fetchStatus();
+              await loadAdvancedSettings(); // Add this line - load settings after connected
             }
           }
         } else {
           await checkConnection();
+          if (isConnected && !useMock) {
+            await loadAdvancedSettings(); // Add this line - load settings if connected
+          }
         }
       };
       refresh();
-    }, [])
+    }, [backendUrl, useMock, isConnected]) // Add dependencies
   );
+
+  // Load advanced settings from backend
+  const loadAdvancedSettings = async () => {
+    if (!isConnected || useMock) return;
+    
+    try {
+      // Try to get brightness
+      const brightnessResponse = await fetch(`${backendUrl}/brightness`);
+      if (brightnessResponse.ok) {
+        const data = await brightnessResponse.json();
+        if (data.data?.brightness) {
+          setBrightness(data.data.brightness);
+        }
+      }
+      
+      // Try to get sensitivity
+      const sensitivityResponse = await fetch(`${backendUrl}/sensitivity`);
+      if (sensitivityResponse.ok) {
+        const data = await sensitivityResponse.json();
+        if (data.data?.sensitivity) {
+          setMotionSensitivity(data.data.sensitivity);
+        }
+      }
+      
+      // Try to get timer
+      const timerResponse = await fetch(`${backendUrl}/timer`);
+      if (timerResponse.ok) {
+        const data = await timerResponse.json();
+        if (data.data?.timer) {
+          setAutoOffTimer(data.data.timer);
+        }
+      }
+    } catch (error) {
+      console.log('Failed to load advanced settings:', error);
+    }
+  };
 
   const loadConfig = async () => {
     try {
@@ -117,21 +157,57 @@ export default function ControlPage() {
     setHistoryLog(prev => [newEntry, ...prev].slice(0, 20));
   };
 
-  const handleBrightnessChange = (value: number) => {
+  const handleBrightnessChange = async (value: number) => {
+    console.log('🎨 Brightness changed to:', value);
     setBrightness(value);
     addToHistory(`Brightness changed to ${value}%`);
+    
+    // Send to backend if connected and not in mock mode
+    if (!useMock && isConnected) {
+      try {
+        await setBrightness(value, backendUrl);
+        console.log('✅ Brightness sent to backend:', value);
+      } catch (error) {
+        console.log('❌ Failed to send brightness to backend:', error);
+        addToHistory(`Failed to sync brightness to ${value}%`);
+      }
+    }
   };
 
-  const handleSensitivityChange = (value: string) => {
+  const handleSensitivityChange = async (value: string) => {
+    console.log('🎯 Sensitivity changed to:', value);
     setMotionSensitivity(value);
     const option = sensitivityOptions.find(opt => opt.value === value);
     const probabilityPercent = option ? option.probability * 100 : 50;
     addToHistory(`Motion sensitivity set to ${value} (${probabilityPercent}% detection)`);
+    
+    // Send to backend if connected and not in mock mode
+    if (!useMock && isConnected) {
+      try {
+        await setSensitivity(value, backendUrl);
+        console.log('✅ Sensitivity sent to backend:', value);
+      } catch (error) {
+        console.log('❌ Failed to send sensitivity to backend:', error);
+        addToHistory(`Failed to sync sensitivity to ${value}`);
+      }
+    }
   };
 
-  const handleTimerChange = (seconds: number) => {
+  const handleTimerChange = async (seconds: number) => {
+    console.log('⏱️ Timer changed to:', seconds);
     setAutoOffTimer(seconds);
     addToHistory(`Auto-off timer set to ${seconds} seconds`);
+    
+    // Send to backend if connected and not in mock mode
+    if (!useMock && isConnected) {
+      try {
+        await setTimer(seconds, backendUrl);
+        console.log('✅ Timer sent to backend:', seconds);
+      } catch (error) {
+        console.log('❌ Failed to send timer to backend:', error);
+        addToHistory(`Failed to sync timer to ${seconds} seconds`);
+      }
+    }
   };
 
   const clearHistory = () => {
