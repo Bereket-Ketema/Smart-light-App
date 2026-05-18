@@ -85,15 +85,18 @@ export const setAutoMode = async (baseUrl?: string): Promise<ApiResponse> => {
       body: JSON.stringify({ command: 'auto mode' }),
     });
 
-    console.log('📥 API Response: setAutoMode - Status:', response.status);
-    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
     console.log('✅ API Success: setAutoMode - Data:', data);
-    return { status: data.data.power, mode: data.data.mode };
+    
+    // Voice command response has state inside data.data.state
+    const power = data.data.state?.power || data.data.power;
+    const mode = data.data.state?.mode || data.data.mode;
+    
+    return { status: power, mode: mode };
   } catch (error) {
     console.log('❌ API Error: setAutoMode -', error);
     throw error;
