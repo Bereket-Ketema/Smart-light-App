@@ -222,6 +222,7 @@ export const testConnection = async (baseUrl?: string): Promise<boolean> => {
 export const setBrightness = async (brightness: number, baseUrl?: string): Promise<{ brightness: number }> => {
   const url = baseUrl || BASE_URL;
   console.log('📤 API Call: setBrightness - URL:', `${url}/brightness`);
+  console.log('📤 API Call: setBrightness - Value:', brightness);
   
   try {
     const response = await fetch(`${url}/brightness`, {
@@ -229,6 +230,10 @@ export const setBrightness = async (brightness: number, baseUrl?: string): Promi
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ brightness }),
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const data = await response.json();
     console.log('✅ API Success: setBrightness - Data:', data);
@@ -242,6 +247,7 @@ export const setBrightness = async (brightness: number, baseUrl?: string): Promi
 export const setSensitivity = async (sensitivity: string, baseUrl?: string): Promise<{ sensitivity: string }> => {
   const url = baseUrl || BASE_URL;
   console.log('📤 API Call: setSensitivity - URL:', `${url}/sensitivity`);
+  console.log('📤 API Call: setSensitivity - Value:', sensitivity);
   
   try {
     const response = await fetch(`${url}/sensitivity`, {
@@ -249,6 +255,10 @@ export const setSensitivity = async (sensitivity: string, baseUrl?: string): Pro
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sensitivity }),
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const data = await response.json();
     console.log('✅ API Success: setSensitivity - Data:', data);
@@ -262,6 +272,7 @@ export const setSensitivity = async (sensitivity: string, baseUrl?: string): Pro
 export const setTimer = async (timer: number, baseUrl?: string): Promise<{ timer: number }> => {
   const url = baseUrl || BASE_URL;
   console.log('📤 API Call: setTimer - URL:', `${url}/timer`);
+  console.log('📤 API Call: setTimer - Value:', timer);
   
   try {
     const response = await fetch(`${url}/timer`, {
@@ -269,6 +280,10 @@ export const setTimer = async (timer: number, baseUrl?: string): Promise<{ timer
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ timer }),
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const data = await response.json();
     console.log('✅ API Success: setTimer - Data:', data);
