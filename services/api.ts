@@ -244,6 +244,7 @@ export const setBrightness = async (brightness: number, baseUrl?: string): Promi
   }
 };
 
+
 export const setSensitivity = async (sensitivity: string, baseUrl?: string): Promise<{ sensitivity: string }> => {
   const url = baseUrl || BASE_URL;
   console.log('📤 API Call: setSensitivity - URL:', `${url}/sensitivity`);
