@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Services
-import { getLightStatus, testConnection, setBrightness,  setSensitivity, setTimer } from '@/services/api';
+import { getLightStatus, testConnection, setBrightness as apiSetBrightness, setSensitivity as apiSetSensitivity, setTimer as apiSetTimer } from '@/services/api';
 
 // Constants
 import { CONFIG } from '@/constants/config';
@@ -24,13 +24,13 @@ export default function ControlPage() {
   const [lightStatus, setLightStatus] = useState('off');
   const [mode, setMode] = useState('auto');
   const [isConnected, setIsConnected] = useState(false);
-  const [useMock, setUseMock] = useState(true);
+  const [useMock, setUseMock] = useState(false);
   const [backendUrl, setBackendUrl] = useState<string>(CONFIG.DEFAULT_BACKEND_URL);
   
   // Advanced settings
-  const [brightness, setBrightness] = useState(70);
-  const [motionSensitivity, setMotionSensitivity] = useState('medium');
-  const [autoOffTimer, setAutoOffTimer] = useState(10);
+  const [brightness, setBrightnessState] = useState(70);
+  const [motionSensitivity, setMotionSensitivityState] = useState('medium');
+  const [autoOffTimer, setAutoOffTimerState] = useState(10);
   const [historyLog, setHistoryLog] = useState<{ time: string; action: string }[]>([]);
   
   // Options
@@ -59,20 +59,26 @@ export default function ControlPage() {
             const connected = await testConnection(backendUrl);
             setIsConnected(connected);
             if (connected) {
-              fetchStatus();
-              await loadAdvancedSettings(); // Add this line - load settings after connected
+              await fetchStatus();
+              await loadAdvancedSettings();
             }
           }
         } else {
           await checkConnection();
           if (isConnected && !useMock) {
-            await loadAdvancedSettings(); // Add this line - load settings if connected
+            await loadAdvancedSettings();
           }
         }
       };
       refresh();
-    }, [backendUrl, useMock, isConnected]) // Add dependencies
+    }, [backendUrl]) // Remove useMock and isConnected from dependencies
   );
+
+  useEffect(() => {
+    if (!useMock && isConnected) {
+      loadAdvancedSettings();
+    }
+  }, [useMock, isConnected]);
 
   // Load advanced settings from backend
   const loadAdvancedSettings = async () => {
@@ -84,7 +90,7 @@ export default function ControlPage() {
       if (brightnessResponse.ok) {
         const data = await brightnessResponse.json();
         if (data.data?.brightness) {
-          setBrightness(data.data.brightness);
+          setBrightnessState(data.data.brightness);
         }
       }
       
@@ -93,7 +99,7 @@ export default function ControlPage() {
       if (sensitivityResponse.ok) {
         const data = await sensitivityResponse.json();
         if (data.data?.sensitivity) {
-          setMotionSensitivity(data.data.sensitivity);
+          setMotionSensitivityState(data.data.sensitivity);
         }
       }
       
@@ -102,7 +108,7 @@ export default function ControlPage() {
       if (timerResponse.ok) {
         const data = await timerResponse.json();
         if (data.data?.timer) {
-          setAutoOffTimer(data.data.timer);
+          setAutoOffTimerState(data.data.timer);
         }
       }
     } catch (error) {
@@ -159,32 +165,35 @@ export default function ControlPage() {
 
   const handleBrightnessChange = async (value: number) => {
     console.log('🎨 Brightness changed to:', value);
-    setBrightness(value);
+    setBrightnessState(value);  // ← ADD THIS LINE - updates UI
+    apiSetBrightness(value);
     addToHistory(`Brightness changed to ${value}%`);
     
     // Send to backend if connected and not in mock mode
     if (!useMock && isConnected) {
       try {
-        await setBrightness(value);
+        await apiSetBrightness(value, backendUrl);
         console.log('✅ Brightness sent to backend:', value);
       } catch (error) {
         console.log('❌ Failed to send brightness to backend:', error);
         addToHistory(`Failed to sync brightness to ${value}%`);
       }
+    } else {
+      console.log('⚠️ Skipping brightness API - useMock:', useMock, 'isConnected:', isConnected);
     }
   };
 
   const handleSensitivityChange = async (value: string) => {
     console.log('🎯 Sensitivity changed to:', value);
-    setMotionSensitivity(value);
+    setMotionSensitivityState(value);
+    apiSetSensitivity(value);
     const option = sensitivityOptions.find(opt => opt.value === value);
     const probabilityPercent = option ? option.probability * 100 : 50;
     addToHistory(`Motion sensitivity set to ${value} (${probabilityPercent}% detection)`);
     
-    // Send to backend if connected and not in mock mode
     if (!useMock && isConnected) {
       try {
-        await setSensitivity(value, backendUrl);
+        await apiSetSensitivity(value, backendUrl);
         console.log('✅ Sensitivity sent to backend:', value);
       } catch (error) {
         console.log('❌ Failed to send sensitivity to backend:', error);
@@ -195,13 +204,13 @@ export default function ControlPage() {
 
   const handleTimerChange = async (seconds: number) => {
     console.log('⏱️ Timer changed to:', seconds);
-    setAutoOffTimer(seconds);
+    setAutoOffTimerState(seconds);
+    apiSetTimer(seconds);
     addToHistory(`Auto-off timer set to ${seconds} seconds`);
     
-    // Send to backend if connected and not in mock mode
     if (!useMock && isConnected) {
       try {
-        await setTimer(seconds, backendUrl);
+        await apiSetTimer(seconds, backendUrl);
         console.log('✅ Timer sent to backend:', seconds);
       } catch (error) {
         console.log('❌ Failed to send timer to backend:', error);
