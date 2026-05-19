@@ -165,7 +165,7 @@ export default function ControlPage() {
     // Send to backend if connected and not in mock mode
     if (!useMock && isConnected) {
       try {
-        await setBrightness(value, backendUrl);
+        await setBrightness(value);
         console.log('✅ Brightness sent to backend:', value);
       } catch (error) {
         console.log('❌ Failed to send brightness to backend:', error);
