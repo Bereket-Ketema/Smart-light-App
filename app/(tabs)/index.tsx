@@ -33,7 +33,7 @@ import { useApi } from '@/hooks/useApi';
 // Constants
 import { CONFIG } from '@/constants/config';
 
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 export default function HomePage() {
   const [refreshing, setRefreshing] = useState(false);
