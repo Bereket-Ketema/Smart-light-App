@@ -90,11 +90,24 @@ export const setAutoMode = async (baseUrl?: string): Promise<ApiResponse> => {
     }
 
     const data = await response.json();
-    console.log('✅ API Success: setAutoMode - Data:', data);
+    console.log('✅ API Success: setAutoMode - Full Data:', JSON.stringify(data, null, 2));
     
-    // Voice command response has state inside data.data.state
-    const power = data.data.state?.power || data.data.power;
-    const mode = data.data.state?.mode || data.data.mode;
+    // Handle different response structures
+    let power = '';
+    let mode = '';
+    
+    if (data.data?.state) {
+      power = data.data.state.power;
+      mode = data.data.state.mode;
+    } else if (data.data?.power !== undefined) {
+      power = data.data.power;
+      mode = data.data.mode;
+    } else {
+      power = data.data?.status || 'off';
+      mode = data.data?.mode || 'auto';
+    }
+    
+    console.log('📤 Parsed - power:', power, 'mode:', mode);
     
     return { status: power, mode: mode };
   } catch (error) {
@@ -151,14 +164,34 @@ export const sendVoiceCommand = async (command: string, baseUrl?: string): Promi
     console.log('📥 API Response: sendVoiceCommand - Status:', response.status);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Get error details from response
+      const errorData = await response.json().catch(() => ({}));
+      console.log('❌ Backend error details:', errorData);
+      throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Unknown error'}`);
     }
 
     const data = await response.json();
-    console.log('✅ API Success: sendVoiceCommand - Data:', data);
+    console.log('✅ API Success: sendVoiceCommand - Full Data:', JSON.stringify(data, null, 2));
+    
+    let power = '';
+    let mode = '';
+    
+    if (data.data?.state) {
+      power = data.data.state.power;
+      mode = data.data.state.mode;
+    } else if (data.data?.power !== undefined) {
+      power = data.data.power;
+      mode = data.data.mode;
+    } else {
+      power = data.data?.status || 'off';
+      mode = data.data?.mode || 'auto';
+    }
+    
+    console.log('📤 Parsed - power:', power, 'mode:', mode);
+    
     return {
-      status: data.data.power,
-      mode: data.data.mode,
+      status: power,
+      mode: mode,
       command: command,
     };
   } catch (error) {
