@@ -272,42 +272,60 @@ export default function HomePage() {
   };
   
   const handleVoiceCommand = async (commandText: string) => {
-    console.log('🎤 User Action: Voice command received:', commandText);
+    // Normalize the command to what backend expects
+    let normalizedCommand = commandText.toLowerCase().trim();
+    
+    // Map various phrases to valid commands
+    if (normalizedCommand.includes('turn on') || 
+        normalizedCommand.includes('light on') || 
+        normalizedCommand === 'on' ||
+        normalizedCommand.includes('switch on')) {
+      normalizedCommand = 'light on';
+    } 
+    else if (normalizedCommand.includes('turn off') || 
+             normalizedCommand.includes('light off') || 
+             normalizedCommand === 'off' ||
+             normalizedCommand.includes('switch off')) {
+      normalizedCommand = 'light off';
+    }
+    else if (normalizedCommand.includes('auto') || 
+             normalizedCommand.includes('automatic')) {
+      normalizedCommand = 'auto mode';
+    }
+    
+    console.log('🎤 Original command:', commandText);
+    console.log('🎤 Normalized command:', normalizedCommand);
+    
     if (apiLoading) return;
     
     setErrorMessage(null);
     
     if (useMock) {
-      console.log('🎭 Mock Mode: Simulating voice command');
       setTimeout(() => {
-        const lowerCommand = commandText.toLowerCase();
-        if (lowerCommand.includes('on')) {
+        const lowerCommand = normalizedCommand.toLowerCase();
+        if (lowerCommand.includes('light on')) {
           setLightStatus('on');
           setMode('manual');
-          console.log('✅ Mock: Voice command - Light on');
-        } else if (lowerCommand.includes('off')) {
+        } else if (lowerCommand.includes('light off')) {
           setLightStatus('off');
           setMode('manual');
-          console.log('✅ Mock: Voice command - Light off');
-        } else if (lowerCommand.includes('auto')) {
+        } else if (lowerCommand.includes('auto mode')) {
           setMode('auto');
-          console.log('✅ Mock: Voice command - Auto mode');
         }
         setLastUpdated(new Date());
       }, CONFIG.MOCK_DELAY_MS);
       return;
     }
     
-    console.log('🌐 Real Mode: Calling API sendVoiceCommand');
-    const result = await execute(() => sendVoiceCommand(commandText, backendUrl));
+    const result = await execute(() => sendVoiceCommand(normalizedCommand, backendUrl));
     if (result) {
-      console.log('✅ API: Voice command executed successfully', result);
       setLightStatus(result.status as 'on' | 'off');
       setMode(result.mode as 'auto' | 'manual');
       setLastUpdated(new Date());
     }
   };
 
+  
   const onRefresh = async () => {
   setRefreshing(true);
   if (useMock) {
