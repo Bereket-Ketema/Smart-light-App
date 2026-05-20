@@ -154,15 +154,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [mode, useMock]);
 
-  useEffect(() => {
-    if (!isConnected || useMock) return; // Don't poll when mock mode is on
-    
-    const interval = setInterval(() => {
-      fetchStatus();
-    }, 2000);
-    
-    return () => clearInterval(interval);
-  }, [isConnected, useMock]);
+  // ❌ REMOVED: Automatic polling - requests only sent on user action now
 
   // API hook for loading and error management
   const { isLoading: apiLoading, execute } = useApi({

@@ -47,6 +47,7 @@ export default function ControlPage() {
     checkConnection();
   }, []);
 
+  // Load config and test connection on screen focus
   useFocusEffect(
     React.useCallback(() => {
       const refresh = async () => {
@@ -55,30 +56,22 @@ export default function ControlPage() {
           if (loadedMock) {
             setIsConnected(true);
           } else {
-            setIsConnected(false);
             const connected = await testConnection(backendUrl);
             setIsConnected(connected);
             if (connected) {
               await fetchStatus();
-              await loadAdvancedSettings();
             }
           }
         } else {
           await checkConnection();
-          if (isConnected && !useMock) {
-            await loadAdvancedSettings();
-          }
         }
       };
       refresh();
-    }, [backendUrl]) // Remove useMock and isConnected from dependencies
+    }, [backendUrl])
   );
 
-  useEffect(() => {
-    if (!useMock && isConnected) {
-      loadAdvancedSettings();
-    }
-  }, [useMock, isConnected]);
+  // ❌ REMOVED: Automatic loadAdvancedSettings polling
+  // Settings are loaded only on initial app start or when explicitly requested by user
 
   // Load advanced settings from backend
   const loadAdvancedSettings = async () => {
@@ -165,11 +158,10 @@ export default function ControlPage() {
 
   const handleBrightnessChange = async (value: number) => {
     console.log('🎨 Brightness changed to:', value);
-    setBrightnessState(value);  // ← ADD THIS LINE - updates UI
-    apiSetBrightness(value);
+    setBrightnessState(value);
     addToHistory(`Brightness changed to ${value}%`);
     
-    // Send to backend if connected and not in mock mode
+    // Send to backend ONLY if connected and not in mock mode
     if (!useMock && isConnected) {
       try {
         await apiSetBrightness(value, backendUrl);
@@ -178,19 +170,17 @@ export default function ControlPage() {
         console.log('❌ Failed to send brightness to backend:', error);
         addToHistory(`Failed to sync brightness to ${value}%`);
       }
-    } else {
-      console.log('⚠️ Skipping brightness API - useMock:', useMock, 'isConnected:', isConnected);
     }
   };
 
   const handleSensitivityChange = async (value: string) => {
     console.log('🎯 Sensitivity changed to:', value);
     setMotionSensitivityState(value);
-    apiSetSensitivity(value);
     const option = sensitivityOptions.find(opt => opt.value === value);
     const probabilityPercent = option ? option.probability * 100 : 50;
     addToHistory(`Motion sensitivity set to ${value} (${probabilityPercent}% detection)`);
     
+    // Send to backend ONLY if connected and not in mock mode
     if (!useMock && isConnected) {
       try {
         await apiSetSensitivity(value, backendUrl);
@@ -205,9 +195,9 @@ export default function ControlPage() {
   const handleTimerChange = async (seconds: number) => {
     console.log('⏱️ Timer changed to:', seconds);
     setAutoOffTimerState(seconds);
-    apiSetTimer(seconds);
     addToHistory(`Auto-off timer set to ${seconds} seconds`);
     
+    // Send to backend ONLY if connected and not in mock mode
     if (!useMock && isConnected) {
       try {
         await apiSetTimer(seconds, backendUrl);

@@ -27,14 +27,13 @@ export function useLightStatus(backendUrl: string, isConnected: boolean, useMock
     }
   }, [backendUrl, isConnected, useMock]);
 
+  // Fetch status only on connection change, not automatically polling
   useEffect(() => {
     if (!isConnected || useMock) return;
     
+    // Only fetch once when connection is established
     fetchStatus();
-    
-    const interval = setInterval(fetchStatus, CONFIG.POLLING_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [isConnected, useMock, fetchStatus]);
+  }, [isConnected, useMock]);
 
   return { lightStatus, setLightStatus, mode, setMode, lastUpdated, fetchStatus };
 }
