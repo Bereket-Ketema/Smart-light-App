@@ -174,7 +174,7 @@ export default function SimpleVoiceRecorder({ onCommand, isProcessing }: SimpleV
             </View>
             <View style={styles.voiceTextContainer}>
               <Text style={styles.voiceTitle}>Text Command</Text>
-              <Text style={styles.voiceSubtitle}>Tap and type "light on", "light off", or "auto mode"</Text>
+              <Text style={styles.voiceSubtitle}>Tap and type light on, light off, or auto mode</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#475569" />
           </TouchableOpacity>
@@ -198,7 +198,7 @@ export default function SimpleVoiceRecorder({ onCommand, isProcessing }: SimpleV
             </View>
             
             <Text style={styles.modalSubtitle}>
-              Type: "light on", "light off", or "auto mode"
+              Type: light on, light off, or auto mode
             </Text>
             
             <TextInput

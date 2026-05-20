@@ -165,8 +165,7 @@ export default function ControlPage() {
 
   const handleBrightnessChange = async (value: number) => {
     console.log('🎨 Brightness changed to:', value);
-    setBrightnessState(value);  // ← ADD THIS LINE - updates UI
-    apiSetBrightness(value);
+    setBrightnessState(value);
     addToHistory(`Brightness changed to ${value}%`);
     
     // Send to backend if connected and not in mock mode
@@ -186,7 +185,6 @@ export default function ControlPage() {
   const handleSensitivityChange = async (value: string) => {
     console.log('🎯 Sensitivity changed to:', value);
     setMotionSensitivityState(value);
-    apiSetSensitivity(value);
     const option = sensitivityOptions.find(opt => opt.value === value);
     const probabilityPercent = option ? option.probability * 100 : 50;
     addToHistory(`Motion sensitivity set to ${value} (${probabilityPercent}% detection)`);
@@ -205,7 +203,6 @@ export default function ControlPage() {
   const handleTimerChange = async (seconds: number) => {
     console.log('⏱️ Timer changed to:', seconds);
     setAutoOffTimerState(seconds);
-    apiSetTimer(seconds);
     addToHistory(`Auto-off timer set to ${seconds} seconds`);
     
     if (!useMock && isConnected) {

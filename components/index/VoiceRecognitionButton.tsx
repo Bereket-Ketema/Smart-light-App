@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
@@ -32,7 +32,7 @@ export default function VoiceRecognitionButton({ onCommand, isProcessing }: Voic
         </View>
         <View style={styles.voiceTextContainer}>
           <Text style={styles.voiceTitle}>Voice Command</Text>
-          <Text style={styles.voiceSubtitle}>Tap and type "light on", "light off", or "auto mode"</Text>
+          <Text style={styles.voiceSubtitle}>Tap and type light on, light off, or auto mode</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color="#475569" />
       </TouchableOpacity>
@@ -53,7 +53,7 @@ export default function VoiceRecognitionButton({ onCommand, isProcessing }: Voic
             </View>
             
             <Text style={styles.modalSubtitle}>
-          Say or type: "light on", "light off", or "auto mode"
+          Say or type: light on, light off, or auto mode
             </Text>
             
             <TextInput

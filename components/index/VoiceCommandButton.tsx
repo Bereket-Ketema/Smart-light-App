@@ -17,7 +17,7 @@ export default function VoiceCommandButton({ onVoicePress }: VoiceCommandButtonP
       </View>
       <View style={styles.voiceTextContainer}>
         <Text style={styles.voiceTitle}>Voice Command</Text>
-        <Text style={styles.voiceSubtitle}>Say "light on", "light off", or "auto mode"</Text>
+        <Text style={styles.voiceSubtitle}>Say light on, light off, or auto mode</Text>
       </View>
       <Ionicons name="chevron-forward" size={18} color="#475569" />
     </TouchableOpacity>
