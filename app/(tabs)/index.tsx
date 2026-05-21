@@ -9,9 +9,8 @@ import React from 'react';
 import Header from '@/components/index/Header';
 import LightStatus from '@/components/index/LightStatus';
 import ControlButtons from '@/components/index/ControlButtons';
-//import VoiceRecognitionButton from '@/components/index/VoiceRecognitionButton';
-// import RealVoiceRecognitionButton from '@/components/index/RealVoiceRecognitionButton';
 import SimpleVoiceRecorder from '@/components/index/SimpleVoiceRecorder';
+import RealVoiceRecognition from '@/components/index/RealVoiceRecognition';
 import MockToggle from '@/components/index/MockToggle';
 import ErrorBanner from '@/components/index/ErrorBanner';
 import ConnectionStatusBar from '@/components/index/ConnectionStatusBar';
@@ -325,7 +324,7 @@ export default function HomePage() {
     }
   };
 
-  
+
   const onRefresh = async () => {
   setRefreshing(true);
   if (useMock) {
@@ -375,7 +374,7 @@ export default function HomePage() {
               isLoading={apiLoading}
               isConnected={isConnected}
             />
-            <SimpleVoiceRecorder 
+            <RealVoiceRecognition 
             onCommand={handleVoiceCommand}
             isProcessing={apiLoading}
           />

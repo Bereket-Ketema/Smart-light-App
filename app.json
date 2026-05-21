@@ -11,15 +11,12 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSSpeechRecognitionUsageDescription": "Allow $(PRODUCT_NAME) to recognize your voice commands",
-        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone for voice commands"
+        "NSSpeechRecognitionUsageDescription": "Allow SmartLight to recognize your voice commands for controlling the light",
+        "NSMicrophoneUsageDescription": "Allow SmartLight to access your microphone for voice commands"
       }
     },
     "android": {
       "permissions": [
-        "RECORD_AUDIO",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS",
         "RECORD_AUDIO",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
@@ -40,6 +37,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-dev-client",
       [
         "expo-splash-screen",
         {
@@ -56,6 +54,13 @@
         "expo-audio",
         {
           "microphonePermission": "Allow SmartLight to access your microphone for voice commands."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow SmartLight to access your microphone for voice commands.",
+          "speechRecognitionPermission": "Allow SmartLight to recognize your voice commands for controlling the light."
         }
       ],
       "expo-web-browser"
