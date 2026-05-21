@@ -38,7 +38,7 @@ A React Native mobile application for controlling a simulation-based smart light
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/smart-light-mobile-app.git
+git clone https://github.com/Bereket-Ketema/smart-light-mobile-app.git
 cd smart-light-mobile-app
 ```
 
